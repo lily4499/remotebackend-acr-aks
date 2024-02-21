@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+    
+    environment {
+        RESOURCE_GROUP_NAME = 'tfstaterg'
+        STORAGE_ACCOUNT_NAME = 'lilibackendsa'
+        CONTAINER_NAME = 'tfstatect'
+        AZURE_CREDENTIALS_ID = 'lili-acr-credentials-id' // ID of the Azure credentials configured in Jenkins
+    }
+
+    stages {
+        stage('Create Resource Group and Storage Account') {
+            steps {
+                script {
+                    // Create resource group if not exists
+                    sh "az group create --name ${RESOURCE_GROUP_NAME} --location eastus --output none"
+                    
+                    // Check if the storage account already exists
+                    def storageAccountExists = sh(script: "az storage account check-name --name ${STORAGE_ACCOUNT_NAME} --output json", returnStdout: true).trim()
+                    
+                    // Create storage account if it doesn't exist
+                    if (storageAccountExists.contains('"nameAvailable": true')) {
+                        sh "az storage account create --resource-group ${RESOURCE_GROUP_NAME} --name ${STORAGE_ACCOUNT_NAME} --sku Standard_LRS --encryption-services blob"
+                    } else {
+                        echo "Storage account ${STORAGE_ACCOUNT_NAME} already exists."
+                    }
+                }
+            }
+        }
+        
+        stage('Get Connection String') {
+            steps {
+                script {
+                    // Get connection string for the storage account
+                    def connectionString = sh(script: "az storage account show-connection-string --name ${STORAGE_ACCOUNT_NAME} --resource-group ${RESOURCE_GROUP_NAME} --query connectionString -o tsv", returnStdout: true).trim()
+                    
+                    // Set the connection string as an environment variable
+                    env.STORAGE_CONNECTION_STRING = connectionString
+                }
+            }
+        }
+        
+        stage('Create Blob Container') {
+            steps {
+                script {
+                    // Create blob container
+                    sh "az storage container create --name ${CONTAINER_NAME} --connection-string '${env.STORAGE_CONNECTION_STRING}'"
+                }
+            }
+        }
+        
+        stage('Trigger Jenkins Job to Create ACR and AKS') {
+            when {
+                expression {
+                    // Run this stage if the previous stage (or any previous stage) has succeeded
+                    currentBuild.previousBuild?.result == 'SUCCESS'     
+                }
+            }
+            steps {
+                script {
+                    // Trigger another Jenkins job to create ACR and AKS
+                    build job: 'Create-ACR-and-AKS-Resource-terraform', wait: false
+                }
+            }
+        }
+    }
+}

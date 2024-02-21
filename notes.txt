@@ -1,0 +1,72 @@
+Title: Automating Azure Infrastructure and Application Deployment with Terraform, Jenkins, and ArgoCD
+
+Description:
+In this YouTube tutorial, we'll guide you through automating the provisioning of Azure infrastructure and 
+deployment of applications using Terraform, Jenkins, and ArgoCD. By following this tutorial, 
+you'll learn how to set up a seamless CI/CD pipeline stored in GitHub that enhances collaboration, 
+mitigates conflicts, and ensures efficient deployment to Azure Kubernetes Service (AKS) 
+using Azure Container Registry (ACR).
+
+Prerequisites:
+
+Azure Account: You'll need an active Azure account to provision resources such as AKS, ACR, and storage.
+GitHub Account:  GitHub account to store your project code, Jenkinsfile, and Terraform scripts for version control and collaboration.
+Jenkins Setup: Install Jenkins on your preferred platform and configure it to execute pipeline jobs.
+Docker Installation: Ensure Docker is installed on your Jenkins server or build agents to facilitate image building.
+Kubernetes Knowledge: Basic understanding of Kubernetes concepts and configuration.
+
+GitHub Repository: 
+https://github.com/lily4499/acr-aks-terraform.git
+https://github.com/lily4499/dockerize-amazon.git
+https://github.com/lily4499/argocd-amazon.git
+
+
+Tutorial Steps:
+
+- Create a pipeline jenkins job to Setting Up Azure Backend Remote. The Jenkinsfile has for instructions to:  
+Create an Azure Storage Account to serve as the backend remote for Terraform state files.
+Trigger another pipeline Jenkins job  to initialize the Azure backend and create acr and aks resources.
+
+- Initializing Backend and Develop Terraform scripts to provision Azure resources, including ACR and AKS.:
+Configure Terraform to utilize this backend to facilitate collaboration and prevent conflicts.
+Utilize parameterized Terraform actions in the Jenkinsfile to allow user choice during resource provisioning, 
+enhancing flexibility.
+Trigger another pipeline Jenkins job to push image to acr.
+
+- Automating Docker Image Build and Push:
+
+Configure the Jenkinsfile stored in GitHub to automatically build Docker images from your application source code.
+Utilize Jenkins pipeline syntax to trigger image pushes to the Azure Container Registry (ACR) upon successful build.
+Set up a webhook in your GitHub repository to trigger the Jenkins build job automatically whenever changes are pushed 
+to the repository.
+Trigger another pipeline Jenkins job to Update Kubernetes Manifests.
+
+- Updating Kubernetes Manifests:
+Implement a Jenkins job with a string parameter (Image_Tag) in the Jenkinsfile to update Kubernetes manifests with 
+the new Docker image tag.
+Ensure seamless deployment of updated manifests to AKS.
+
+- Updating Kubeconfig:
+Fetch the kubeconfig file from the AKS cluster in Azure.
+Update the local kubeconfig file on your Jenkins server or build agents to establish connectivity with the AKS cluster.
+
+- Installing ArgoCD and Application Deployment:
+Utilize the Jenkinsfile stored in GitHub to set up ArgoCD in the AKS cluster for continuous deployment.
+Configure ArgoCD to monitor changes in ACR and automatically deploy updated applications to AKS.
+
+- Testing and Verification:
+Validate the CI/CD pipeline by triggering builds and deployments through commits to the GitHub repository.
+Verify the automated deployment process by observing updates in the AKS cluster through ArgoCD.
+
+
+Conclusion:
+By completing this tutorial, you'll have a comprehensive understanding of how to automate Azure infrastructure 
+provisioning and application deployment using Terraform, Jenkins, and ArgoCD, all managed through a Jenkinsfile 
+stored in GitHub. This will empower you to streamline development workflows, enhance collaboration, 
+and deploy applications with confidence. 
+
+Don't forget to like, share, and subscribe for more DevOps and cloud-native development tutorials!
+
+
+
+
